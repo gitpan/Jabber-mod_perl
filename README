@@ -3,15 +3,18 @@ Jabber::mod_perl
 
 -- mod_perl for jabberd --
 
-Copyright (c) 2002, Piers Harding. All Rights Reserved.
+Copyright (c) 2003, Piers Harding. All Rights Reserved.
 This module is free software. It may be used, redistributed
 and/or modified under the same terms as Perl itself.
-
 
 
 Jabber::mod_perl is an embedded interpreter in the session manager of jabberd2 (sm daemon).
 This allows the user to insert arbitrary perl code (in the form of loaded modules) in to the
 processing chain of the session manager, in a similar fashion to mod_perl for Apache.
+
+Additionally, Jabber::mod_perl is available as a separate component building framework built
+into jadperl.  jadperl enables you to create your own components in Perl, using a multiple,
+stacked handler environment, that is based on NADs, and sx (giving you SSL, and SASL etc.).
 
 First of all you need to get hold of the jabberd2 source code, as this needs to 
 be patched to include mod_perl.c in the build.
@@ -56,13 +59,15 @@ make install <- do not do this if you want to test things first - see below
 
 Dance.
 
-perl Makefile.pl will prompt you for the location of jabberd2 (if the above went according to plan
+perl Makefile.PL will prompt you for the location of jabberd2 (if the above went according to plan
 then the default should suffice ), and then you will be asked for configuration parameters to be
 passed to ./configure for the build of jabberd2.
 
-NOTE:
+IMPORTANT NOTE:
 perl Makefile.PL will do the the entire configure and build for jabberd2 so don't forget to run make
-for Jabber::mod_perl.
+for Jabber::mod_perl.  It also changes the configuration files inorder to facilitate the build of jadperl,
+including copying source files to the correct locations.
+
 
 Once you have built Jabber::mod_perl - this should have compiled jabberd2 for you successfully.  You still
 need to change to the jabberd2 directory (cd ../jabberd2 ), and make install here to install the server.
@@ -76,17 +81,11 @@ sm.xml config file to activate mod_perl - eg:
       <module>iq-time</module>      <!-- return the current server time -->
       <module>iq-version</module>   <!-- return the server name and version -->
       <module>echo</module>         <!-- echo messages sent to /echo -->
-      <module>mod_perl</module>     <!-- mod_perl handler activated here -->
+      <module arg='Some::Handler1 MyEcho'>mod_perl</module>     <!-- mod_perl handler activated here -->
     </chain>
 .....
   </modules>
 
-<!-- directives for mod_perl to load handler modules -->
-  <mod_perl>
-    <handler>Some::Handler1</handler>
-    <handler>MyEcho</handler>
-  </mod_perl>
-.....
 
 
 Testing/Making it all run
@@ -98,7 +97,7 @@ that it is attempting to load.  I typically do this by setting the PERL5LIB
 environment variable to include the appropriate paths - eg:
 
 export PERL5LIB=path/to/mod_perl/examples
-/home/jabber/jabberd/bin/sm -D > /home/jabber/jabberd/sm.log 2>&1 &
+/path/to/jabberd/bin/sm -D > /path/to/jabberd/sm.log 2>&1 &
 
 Or something similar.
 
@@ -107,6 +106,18 @@ of how to control this with a little less pain :-).
 
 Make sure that you watch the sm.log file, as this will alert you to any problems regarding loading 
 modules etc.
+
+
+Testing/Making jadperl run
+==========================
+
+To activate jadperl you first need to create a configuration file - see the example: 
+examples/jp.xml that comes with this distribution.
+This can be launched like so:
+
+export PERL5LIB=path/to/mod_perl/examples
+/path/to/jabberd/bin/jadperl -c /path/to/configfile/jp.xml -D > /path/to/jabberd/jp.log 3>&1 &
+
 
 for more details:
 

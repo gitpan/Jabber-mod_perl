@@ -17,7 +17,7 @@ sub handler {
   warn "Packet is: ".$pkt->nad()->print(1)."\n";
   warn "chain is: $chain instance is: $instance\n";
 
-  return PASS unless $chain eq PKT_SM;
+  return PASS unless $chain eq PKT_SM || $chain eq JADPERL_PKT;
 
   my $to = $pkt->to();
   my $from = $pkt->from();
@@ -30,7 +30,7 @@ sub handler {
 
   return PASS unless $type eq MESSAGE;
 
-  return PASS unless $to =~ /^localhost\/mod_perl/;
+  return PASS unless $to =~ /^(localhost\/mod_perl|jpcomp)/;
 
   my $el = $nad->find_elem(1,-1,"body",1);
   warn "Element is: $el\n";

@@ -1,6 +1,6 @@
 package Jabber::mod_perl;
 use vars qw($VERSION @ISA);
-$VERSION = '0.04';
+$VERSION = '0.05';
 
 use strict;
 use vars q/$DEBUG/;
@@ -60,6 +60,19 @@ Each perl module can optionally have an init() method, and must have a handler()
 The init() method is called when the mod_perl module is initialised.  
 The handler is called for each packet that it is registered for ( as per the module 
 processing chain described above ).
+
+
+Additionally, Jabber::mod_perl is available as a separate component building framework built
+into jadperl.  jadperl enables you to create your own components in Perl, using a multiple,
+stacked handler environment, that is based on NADs, and sx (giving you SSL, and SASL etc.).
+
+To activate jadperl you first need to create a configuration file - see the example: 
+examples/jp.xml that comes with this distribution.
+This can be launched like so:
+
+export PERL5LIB=path/to/mod_perl/examples
+/path/to/jabberd/bin/jadperl -c /path/to/configfile/jp.xml -D > /path/to/jabberd/jp.log 3>&1 &
+
 
 
 =head2 Callback Handlers
@@ -159,9 +172,11 @@ processing the current pkt.
 
 use these constants to check the pkt type of $pkt->type() (Jabber::pkt)
 
-=head2 SESS_START, SESS_END, OUT_SESS, OUT_ROUTER, IN_SESS, IN_ROUTER, PKT_SM, PKT_USER, PKT_ROUTER
+=head2 SESS_START, SESS_END, OUT_SESS, OUT_ROUTER, IN_SESS, IN_ROUTER, PKT_SM, PKT_USER, PKT_ROUTER JADPERL_PKT
 
 use these constants to determine which processing chain the handler is in.
+
+JADPERL_PKT is the packet chain for all packets processed by jadperl.
 
 
 =head1 VERSION
@@ -200,13 +215,15 @@ use constant IN_ROUTER => "IN_ROUTER";
 use constant PKT_SM => "PKT_SM";
 use constant PKT_USER => "PKT_USER";
 use constant PKT_ROUTER => "PKT_ROUTER";
+use constant JADPERL_PKT => "JADPERL_PKT";
 
 my @export_ok = qw ( HANDLED PASS 
                      MESSAGE PRESENCE IQ 
                      SESS_START SESS_END 
                      IN_SESS IN_ROUTER 
                      OUT_SESS OUT_ROUTER 
-                     PKT_SM PKT_USER PKT_ROUTER );
+                     PKT_SM PKT_USER PKT_ROUTER
+                     JADPERL_PKT );
 
 sub import {
 
@@ -223,40 +240,52 @@ sub import {
 
 
 my $mod_perl_handlers = {};
+my $jadperl_running = 0;
 
 sub initialise {
 
-  my ( $nad, $instance, $chain, $handlers ) = @_;
+  my ( $nad, $instance, $chain, $handlers, @rest ) = @_;
 
   debug(__PACKAGE__."::initialise: initialising all handlers\n");
-  debug("intialise: chain $chain instance $instance handlers $handlers config is: ".$nad->print(0));
+  debug("intialise: chain $chain instance $instance handlers $handlers - rest: ".join("/",@rest)." - config is: ".$nad->print(0));
+
+  # if this is jadperl - realign the data
+  if (@rest){
+    $instance = $handlers;
+    $handlers = join(" ", @rest);
+    $jadperl_running = 1;
+  }
   
   foreach my $handler (split(/\s+/,$handlers)){
     eval "use $handler;";
     if ($@){
       debug("Handler: $handler - did not load: $@");
     } else {
-     # register for reloading
-     Jabber::Reload::register($handler);
+      # register for reloading
+      Jabber::Reload::register($handler);
      
-     # call init of handler
-     if ($handler->can("init")){
-       debug("$handler can do init ...");
-       eval { $handler->init($nad, $chain, $instance); };
-       if ($@){
-         debug("onPacket::init() - call failed - $@");
-       } else {
-         debug("onPacket::init() - initialised $handler");
-       }
-     } else {
-       debug("$handler cant do init ...");
-     }
+      # call init of handler
+      if ($handler->can("init")){
+        debug("$handler can do init ...");
+        eval { $handler->init($nad, $chain, $instance); };
+        if ($@){
+          debug("onPacket::init() - call failed - $@");
+        } else {
+          debug("onPacket::init() - initialised $handler");
+        }
+      } else {
+        debug("$handler cant do init ...");
+      }
 
-     # store away the handler
-     push(@{$mod_perl_handlers->{$chain}->{$instance}},
-            { 'name' => $handler, 'config' => $nad });
+      # store away the handler
+      if ($jadperl_running){
+        push(@{$mod_perl_handlers->{$chain}},
+               { 'name' => $handler, 'config' => $nad });
+      } else {
+        push(@{$mod_perl_handlers->{$chain}->{$instance}},
+               { 'name' => $handler, 'config' => $nad });
+      }
     }
-
   }
   debug("Handlers loaded...".Dumper($mod_perl_handlers));
   return 1;
@@ -270,11 +299,19 @@ sub onPacket{
 
   debug("onPacket: chain $chain instance $instance handlers $handlers");
 
-  return PASS unless exists $mod_perl_handlers->{$chain}
-                 &&  exists $mod_perl_handlers->{$chain}->{$instance};
+  if ($jadperl_running){
+    return PASS unless exists $mod_perl_handlers->{$chain};
+  } else {
+    return PASS unless exists $mod_perl_handlers->{$chain}
+                   &&  exists $mod_perl_handlers->{$chain}->{$instance};
+  }
 
-  my $handlers = $mod_perl_handlers->{$chain}->{$instance};
+  my $handlers = $jadperl_running ?
+        $mod_perl_handlers->{$chain} : $mod_perl_handlers->{$chain}->{$instance};
+
   my $result = PASS;
+
+  debug("Handlers are: ".Dumper($handlers));
 
   
   foreach my $handler ( @{$handlers} ){
@@ -302,7 +339,6 @@ sub onPacket{
     }
     last if $result == HANDLED;
   }
-
   return $result;
 
 }

@@ -13,6 +13,7 @@ echo > $JABBERD/router.log
 echo > $JABBERD/resolver.log
 echo > $JABBERD/sm.log 
 echo > $JABBERD/c2s.log
+echo > $JABBERD/jp.log
 
 #rm -rf /home/jabber/jabberd/var/*
 
@@ -21,4 +22,5 @@ sleep 1
 $JABBERD/bin/resolver -D > $JABBERD/resolver.log 2>&1 &
 $JABBERD/bin/sm -D > $JABBERD/sm.log 2>&1 &
 $JABBERD/bin/c2s -D > $JABBERD/c2s.log 2>&1 &
+$JABBERD/bin/jadperl -D > $JABBERD/jp.log 2>&1 &
 

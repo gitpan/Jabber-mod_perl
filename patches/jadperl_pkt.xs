@@ -15,7 +15,7 @@ and/or modified under the same terms as Perl itself.
 #include "XSUB.h"
 
 
-#include "sm.h"
+#include "jadperl.h"
 
 
 /* create an error packet from an existing packet  */
@@ -97,11 +97,11 @@ SV* my_pkt_reset(SV* sv_pkt, SV* sv_elem){
 
 
 /* create a new packet   */
-SV* my_pkt_new(SV* sv_sm, SV* sv_nad, SV* sv_elem){
+SV* my_pkt_new(SV* sv_jp, SV* sv_nad, SV* sv_elem){
 
   pkt_t new_pkt;
 
-  new_pkt =  pkt_new( ((sm_t) SvIV(SvRV(sv_sm))),
+  new_pkt =  pkt_new( ((jp_t) SvIV(SvRV(sv_jp))),
                       ((nad_t) SvIV(SvRV(sv_nad))),
                       SvIV(sv_elem) );
   if (new_pkt == NULL){
@@ -122,11 +122,11 @@ void my_pkt_free(SV* sv_pkt){
 
 
 /* create a packet from scratch   */
-SV* my_pkt_create(SV* sv_sm, SV* sv_elem, SV* sv_type, SV* sv_to, SV* sv_from){
+SV* my_pkt_create(SV* sv_jp, SV* sv_elem, SV* sv_type, SV* sv_to, SV* sv_from){
 
   pkt_t new_pkt;
 
-  new_pkt =  pkt_create( ((sm_t) SvIV(SvRV(sv_sm))),
+  new_pkt =  pkt_create( ((jp_t) SvIV(SvRV(sv_jp))),
                          SvPV(sv_elem, SvCUR(sv_elem)),
                          SvPV(sv_type, SvCUR(sv_type)),
                          SvPV(sv_to, SvCUR(sv_to)),
@@ -244,8 +244,8 @@ my_pkt_reset (sv_pkt, sv_elem)
 	SV *	sv_elem
 
 SV *
-my_pkt_new (sv_sm, sv_nad, sv_elem)
-	SV *	sv_sm
+my_pkt_new (sv_jp, sv_nad, sv_elem)
+	SV *	sv_jp
 	SV *	sv_nad
 	SV *	sv_elem
 
@@ -254,8 +254,8 @@ my_pkt_free (sv_pkt)
 	SV *	sv_pkt
 
 SV *
-my_pkt_create (sv_sm, sv_elem, sv_type, sv_to, sv_from)
-	SV *	sv_sm
+my_pkt_create (sv_jp, sv_elem, sv_type, sv_to, sv_from)
+	SV *	sv_jp
 	SV *	sv_elem
 	SV *	sv_type
 	SV *	sv_to

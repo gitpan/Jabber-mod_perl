@@ -128,7 +128,56 @@ A method to print a NAD (serialise the xml)
 
  $n->print( $depth );
 
-=pod
+=head2 find_children()
+
+return an array of the index numbers of child elements of the 
+given nad element
+
+ $n->find_children( $element_number );
+
+=head2 attrs()
+
+return an array of the index numbers of attributes of the 
+given nad element
+
+ $n->attrs( $element_number );
+
+=head2 nad_attr_name()
+
+Get the name of a given attribute
+
+ $n->nad_attr_name( $attr_number );
+
+=head2 nad_attr_val()
+
+Get the value of a given attribute
+
+ $n->nad_attr_val( $attr_number );
+
+=head2 nad_elem_name()
+
+Get the name of a given element
+
+ $n->nad_elem_name( $elem_number );
+
+=head2 nad_cdata()
+
+Get the cdata of a given element
+
+ $n->nad_cdata( $elem_number );
+
+=head2 nad_uri()
+
+Get the name of a given uri (namespace)
+
+ $n->nad_uri( $uri_number );
+
+=head2 nad_uri_prefix()
+
+Get the name of a given uri (namespace) prefix
+
+ $n->nad_uri_prefix( $uri_number );
+
 
 =head1 VERSION
 

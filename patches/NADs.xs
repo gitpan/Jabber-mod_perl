@@ -237,6 +237,66 @@ SV* my_nad_find_scoped_namespace(SV* sv_n, SV* sv_uri, SV* sv_prefix){
 }
 
 
+SV* my_nad_nad_attr_name(SV* sv_n, SV* sv_attr){
+
+    return newSVpvn( 
+                     NAD_ANAME( ((nad_t) SvIV(SvRV(sv_n))), SvIV(sv_attr) ),
+                     NAD_ANAME_L( ((nad_t) SvIV(SvRV(sv_n))), SvIV(sv_attr) )
+                    );
+
+}
+
+
+SV* my_nad_nad_attr_val(SV* sv_n, SV* sv_attr){
+
+    return newSVpvn( 
+                     NAD_AVAL( ((nad_t) SvIV(SvRV(sv_n))), SvIV(sv_attr) ),
+                     NAD_AVAL_L( ((nad_t) SvIV(SvRV(sv_n))), SvIV(sv_attr) )
+                    );
+
+}
+
+
+SV* my_nad_nad_elem_name(SV* sv_n, SV* sv_elem){
+
+    return newSVpvn( 
+                     NAD_ENAME( ((nad_t) SvIV(SvRV(sv_n))), SvIV(sv_elem) ),
+                     NAD_ENAME_L( ((nad_t) SvIV(SvRV(sv_n))), SvIV(sv_elem) )
+                    );
+
+}
+
+
+SV* my_nad_nad_cdata(SV* sv_n, SV* sv_elem){
+
+    return newSVpvn( 
+                     NAD_CDATA( ((nad_t) SvIV(SvRV(sv_n))), SvIV(sv_elem) ),
+                     NAD_CDATA_L( ((nad_t) SvIV(SvRV(sv_n))), SvIV(sv_elem) )
+                    );
+
+}
+
+
+SV* my_nad_nad_uri(SV* sv_n, SV* sv_ns){
+
+    return newSVpvn( 
+                     NAD_NURI( ((nad_t) SvIV(SvRV(sv_n))), SvIV(sv_ns) ),
+                     NAD_NURI_L( ((nad_t) SvIV(SvRV(sv_n))), SvIV(sv_ns) )
+                    );
+
+}
+
+
+SV* my_nad_nad_uri_prefix(SV* sv_n, SV* sv_ns){
+
+    return newSVpvn( 
+                     NAD_NPREFIX( ((nad_t) SvIV(SvRV(sv_n))), SvIV(sv_ns) ),
+                     NAD_NPREFIX_L( ((nad_t) SvIV(SvRV(sv_n))), SvIV(sv_ns) )
+                    );
+
+}
+
+
 MODULE = Jabber::NADs	PACKAGE = Jabber::NADs	PREFIX = my_nad_
 
 PROTOTYPES: DISABLE
@@ -354,4 +414,78 @@ my_nad_find_scoped_namespace (sv_n, sv_uri, sv_prefix)
 	SV *	sv_n
 	SV *	sv_uri
 	SV *	sv_prefix
+
+SV *
+my_nad_nad_attr_name (sv_n, sv_attr)
+	SV *	sv_n
+	SV *	sv_attr
+
+SV *
+my_nad_nad_attr_val (sv_n, sv_attr)
+	SV *	sv_n
+	SV *	sv_attr
+
+SV *
+my_nad_nad_elem_name (sv_n, sv_elem)
+	SV *	sv_n
+	SV *	sv_elem
+
+SV *
+my_nad_nad_cdata (sv_n, sv_elem)
+	SV *	sv_n
+	SV *	sv_elem
+
+SV *
+my_nad_nad_uri (sv_n, sv_ns)
+	SV *	sv_n
+	SV *	sv_ns
+
+SV *
+my_nad_nad_uri_prefix (sv_n, sv_ns)
+	SV *	sv_n
+	SV *	sv_ns
+
+void
+my_nad_find_children (sv_n, sv_elem)
+	SV *	sv_n
+	SV *	sv_elem
+    INIT:
+        int depth, el;
+        nad_t nad;
+
+    PPCODE:
+        nad = ((nad_t) SvIV(SvRV(sv_n)));
+        el = SvIV(sv_elem);
+        // find the children of the given node = + 1
+        if (el >= 0){
+          depth = nad->elems[el].depth + 1;
+          for(el = el + 1; el < nad->ecur; el++)
+          {
+             if (nad->elems[el].depth < depth)
+                break;
+             if (nad->elems[el].depth == depth){
+               XPUSHs(sv_2mortal(newSViv(el)));
+             }
+          }
+        }
+
+
+void
+my_nad_attrs (sv_n, sv_elem)
+	SV *	sv_n
+	SV *	sv_elem
+    INIT:
+        int attr, el;
+        nad_t nad;
+
+    PPCODE:
+        nad = ((nad_t) SvIV(SvRV(sv_n)));
+        el = SvIV(sv_elem);
+        if (el >= 0 && el < nad->ecur){
+          attr = nad->elems[el].attr;
+          while (attr >= 0){
+            XPUSHs(sv_2mortal(newSViv(attr)));
+            attr = nad->attrs[attr].next;
+          }
+        }
 

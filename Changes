@@ -5,3 +5,8 @@ Fri Dec 20 16:30:31 GMT 2002
        checked out of cvs or the release candidates such as 
        http://files.jabberstudio.org/jabberd2/jabberd-2.0.0-a3.tar.gz
 
+Sun Dec 22 12:57:03 GMT 2002
+0.05 - added various functions to Jabber::NADs for getting element and attribute
+       values, and for finding children elements, and the list of attributes
+       of a given node (element)
+     
