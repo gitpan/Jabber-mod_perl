@@ -11,5 +11,9 @@ examples/MyEcho.pm
 examples/Some/Handler1.pm
 patches/mod_perl.c
 patches/mod_perl.h
+patches/pkt.xs
+patches/NADs.xs
 tools/start
 tools/stop
+lib/Jabber/NADs.pod
+lib/Jabber/pkt.pod

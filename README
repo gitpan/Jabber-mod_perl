@@ -30,18 +30,24 @@ Also check that you have:
  - libtool 1.4+
      http://www.gnu.org/software/automake/automake.html
 
+Get a source code release candidate for the jabberd2 from:
+  http://www.jabberstudio.org/projects/jabberd2/project/view.php
+and unpack it - something like this: tar -xzvf Jabber-mod_perl-0.03.tar.gz
 
-You can get the jabberd2 source code by checking it out of cvs on jabberstudio.org like this:A
+OR: 
+
+You can get the latest jabberd2 source code by checking it out of cvs on jabberstudio.org like this:
 
 cvs -d :pserver:anonymous@jabberstudio.org:/home/cvs co jabberd2
 
 ( remember to login to cvs first like this: cvs -d :pserver:anonymous@jabberstudio.org:/home/cvs login )
 
-this will give you a directory jabberd2 in the directory that you are currentyl sitting in.
+this will give you a directory jabberd2 in the directory that you are currently sitting in.
 After this you should unpack this distribution next to it giving you two adjacent directories -
-./jabberd2 and ./Jabber-mod_perl-x.xx
+./jabberd-2.x.x-ax ( or ./jabberd2 from cvs ) and ./Jabber-mod_perl-x.xx
 
-Change in the Jabber-mod_perl-x.xx directory and then do the -
+
+Change into the Jabber-mod_perl-x.xx directory and then do the -
 
 perl Makefile.PL
 make 
@@ -53,6 +59,10 @@ Dance.
 perl Makefile.pl will prompt you for the location of jabberd2 (if the above went according to plan
 then the default should suffice ), and then you will be asked for configuration parameters to be
 passed to ./configure for the build of jabberd2.
+
+NOTE:
+perl Makefile.PL will do the the entire configure and build for jabberd2 so don't forget to run make
+for Jabber::mod_perl.
 
 Once you have built Jabber::mod_perl - this should have compiled jabberd2 for you successfully.  You still
 need to change to the jabberd2 directory (cd ../jabberd2 ), and make install here to install the server.

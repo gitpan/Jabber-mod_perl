@@ -103,7 +103,7 @@ my $LDFLAGS = ldopts();
 chomp($CFLAGS,$LDFLAGS);
 
 my $clean = -f $jabberdir."/Makefile" ? " make distclean\; " : "";
-my $cmd = "cd $jabberdir; $clean ./bootstrap && CFLAGS=\'$CFLAGS\' LDFLAGS=\'$LDFLAGS\' ./configure $conf && make";
+my $cmd = "cd $jabberdir; $clean ./bootstrap; CFLAGS=\'$CFLAGS\' LDFLAGS=\'$LDFLAGS\' ./configure $conf && make";
 
 # now for the big kick off
 warn "\n\nExecuting $cmd\n  To build jabberd.\n";

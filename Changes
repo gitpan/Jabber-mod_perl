@@ -1,2 +1,7 @@
+Fri Dec 20 16:30:31 GMT 2002
+0.04 - added in the pod documentation for Jabber::NADs and Jabber::pkt.
+     - added in missing XS files NADs.xs and pkt.xs
+     - rejigged the perl Makefile.PL process to cope with either the jabberd2
+       checked out of cvs or the release candidates such as 
+       http://files.jabberstudio.org/jabberd2/jabberd-2.0.0-a3.tar.gz
 
-There are no changes yet, but I'm sure there will be soon.
