@@ -19,6 +19,9 @@
 
 #include "mod_perl.h"
 
+  static PerlInterpreter *my_perl;  /***    The Perl interpreter    ***/
+
+
 
 /*----------------------------------------------------------------------------------*
 
@@ -279,8 +282,8 @@ SV* mod_perl_eval_pv(char *subroutine)
 void mod_perl_destroy()
 {
 
-    perl_destruct(mod_perl_interpreter);
-    perl_free(mod_perl_interpreter);
+    perl_destruct(my_perl);
+    perl_free(my_perl);
     log_debug(ZONE, "mod_perl has been cleaned up");
 
 }
@@ -386,16 +389,18 @@ int mod_perl_init(mod_instance_t mi, char *arg)
 
     if (!mod->init){
         log_debug(ZONE, "mod_perl_init - first time - initilise interpreter");
-        mod_perl_interpreter = perl_alloc();
-        perl_construct( mod_perl_interpreter );
-        perl_parse(mod_perl_interpreter, xs_init, MOD_PERL_NO_PARMS, embedding, NULL);
-        perl_run(mod_perl_interpreter);
+        my_perl = perl_alloc();
+        perl_construct( my_perl );
+        perl_parse(my_perl, xs_init, MOD_PERL_NO_PARMS, embedding, NULL);
+        perl_run(my_perl);
         mod_perl_eval_pv(use_mod_perl);
 
         // initialise the pure C Perl modules
         log_debug(ZONE, "mod_perl_init - first time - boot the Perl modules");
-        boot_Jabber__pkt(Nullcv);
-        boot_Jabber__NADs(Nullcv);
+        //boot_Jabber__pkt(Nullcv);
+        //boot_Jabber__NADs(Nullcv);
+	      boot_Jabber__pkt(my_perl, Nullcv);
+	      boot_Jabber__NADs(my_perl, Nullcv);
 
         // setup the sv of onpacket code - parse the callback
         sv_on_packet_subroutine = newSVpv(mod_perl_method_onpacket, PL_na);

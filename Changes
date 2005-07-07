@@ -10,3 +10,10 @@ Sun Dec 22 12:57:03 GMT 2002
        values, and for finding children elements, and the list of attributes
        of a given node (element)
      
+Thu Jul  7 09:35:38 BST 2005
+0.06 - applied patches supplied by Christopher Zorn to make the build work for j2.0s8
+     - fixed an old bug with build where make was picking up Perls config.h instead
+       of jabberd2s
+     - for the moment - I have removed jadperl from the build, and concentrated on
+       mod_perl for sm - my thinking is that there are so many Perl implementations
+       for building components and clients that I should focus on the core

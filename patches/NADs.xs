@@ -13,6 +13,10 @@ and/or modified under the same terms as Perl itself.
 #include "EXTERN.h"
 #include "perl.h"
 #include "XSUB.h"
+
+/* do this to make sure that the config.h of j2 is loaded first
+   and not perls one */
+#include "../config.h"
 #include "util/util.h"
 
 

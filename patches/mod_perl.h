@@ -17,13 +17,16 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA02111-1307USA
  */
 
-
 /*   Declare up the perl stuff    */
 #include <EXTERN.h>
-#include <XSUB.h>
 #include <perl.h>
+#include <XSUB.h>
 
+/* do this to make sure that the config.h of j2 is loaded first
+   and not perls one */
+#include "../config.h"
 #include "sm.h"
+
 
 // create my true and false
 #ifndef false
@@ -42,7 +45,7 @@ typedef unsigned char    bool;
 // real business is happening in perlxsi.c
 EXTERN_C void xs_init (pTHXo);
 
-static PerlInterpreter *mod_perl_interpreter;
+static PerlInterpreter *my_perl;
 
 char* mod_perl_realname;
 char* mod_perl_method_init = "Jabber::mod_perl::initialise";

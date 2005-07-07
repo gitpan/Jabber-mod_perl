@@ -15,15 +15,21 @@ and/or modified under the same terms as Perl itself.
 #include "XSUB.h"
 
 
+/* do this to make sure that the config.h of j2 is loaded first
+   and not perls one */
+#include "../config.h"
 #include "sm.h"
 
 
 /* create an error packet from an existing packet  */
-SV* my_pkt_error(SV* sv_pkt, SV* sv_code, SV* sv_msg){
+/* SV* my_pkt_error(SV* sv_pkt, SV* sv_code, SV* sv_msg){ */
+
+SV* my_pkt_error(SV* sv_pkt, SV* sv_code){
 
   pkt_t new_pkt;
 
-  new_pkt =  pkt_error( ((pkt_t) SvIV(SvRV(sv_pkt))), SvIV(sv_code), SvPV(sv_msg, SvCUR(sv_msg)) );
+  //new_pkt =  pkt_error( ((pkt_t) SvIV(SvRV(sv_pkt))), SvIV(sv_code), SvPV(sv_msg, SvCUR(sv_msg)) );
+  new_pkt =  pkt_error( ((pkt_t) SvIV(SvRV(sv_pkt))), SvIV(sv_code) );
   if (new_pkt == NULL){
     return newSVsv(&PL_sv_undef);
   } else {
@@ -76,34 +82,13 @@ SV* my_pkt_dup(SV* sv_pkt, SV* sv_to, SV* sv_from){
 }
 
 
-/* reset a packet  */
-SV* my_pkt_reset(SV* sv_pkt, SV* sv_elem){
-
-  pkt_t new_pkt;
-
-  new_pkt =  pkt_reset( ((pkt_t) SvIV(SvRV(sv_pkt))),
-                      SvIV(sv_elem) );
-  if (new_pkt == NULL){
-    return newSVsv(&PL_sv_undef);
-  } else {
-    return 
-         sv_bless(
-           sv_setref_pv(newSViv(0), Nullch, (void *)new_pkt ),
-           gv_stashpv("Jabber::pkt", 0)
-         );
-  }
-
-}
-
-
 /* create a new packet   */
-SV* my_pkt_new(SV* sv_sm, SV* sv_nad, SV* sv_elem){
+SV* my_pkt_new(SV* sv_sm, SV* sv_nad){
 
   pkt_t new_pkt;
 
   new_pkt =  pkt_new( ((sm_t) SvIV(SvRV(sv_sm))),
-                      ((nad_t) SvIV(SvRV(sv_nad))),
-                      SvIV(sv_elem) );
+                      ((nad_t) SvIV(SvRV(sv_nad))) );
   if (new_pkt == NULL){
     return newSVsv(&PL_sv_undef);
   } else {
@@ -227,10 +212,9 @@ PROTOTYPES: DISABLE
 
 
 SV *
-my_pkt_error (sv_pkt, sv_code, sv_msg)
+my_pkt_error (sv_pkt, sv_code)
 	SV *	sv_pkt
 	SV *	sv_code
-	SV *	sv_msg
 
 SV *
 my_pkt_dup (sv_pkt, sv_to, sv_from)
@@ -239,15 +223,9 @@ my_pkt_dup (sv_pkt, sv_to, sv_from)
 	SV *	sv_from
 
 SV *
-my_pkt_reset (sv_pkt, sv_elem)
-	SV *	sv_pkt
-	SV *	sv_elem
-
-SV *
-my_pkt_new (sv_sm, sv_nad, sv_elem)
+my_pkt_new (sv_sm, sv_nad)
 	SV *	sv_sm
 	SV *	sv_nad
-	SV *	sv_elem
 
 void
 my_pkt_free (sv_pkt)

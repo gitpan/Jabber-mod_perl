@@ -64,11 +64,6 @@ Send a packet on it's way
 
  $pkt->router();
 
-=head2 reset()
-
-Reset a packet.
-
- $pkt->reset();
 
 =head2 free()
 

@@ -18,11 +18,4 @@ tools/start
 tools/stop
 lib/Jabber/NADs.pod
 lib/Jabber/pkt.pod
-patches/jadperl/jadperl.c
-patches/jadperl/jadperl.h
-patches/jadperl/mod_perl.c
-patches/jadperl/mod_perl.h
-patches/jadperl/main.c
-patches/jadperl/Makefile.am
-patches/jadperl/Makefile.in
-patches/jadperl/pkt.c
+META.yml                                 Module meta-data (added by MakeMaker)
