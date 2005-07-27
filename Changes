@@ -17,3 +17,7 @@ Thu Jul  7 09:35:38 BST 2005
      - for the moment - I have removed jadperl from the build, and concentrated on
        mod_perl for sm - my thinking is that there are so many Perl implementations
        for building components and clients that I should focus on the core
+
+Wed Jul 27 08:39:21 BST 2005
+0.07 - applied patches supplied by Christopher Zorn for problem wih dup() in pkt
+       where it doesnt handle blank from and tos

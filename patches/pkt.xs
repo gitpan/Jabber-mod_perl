@@ -66,9 +66,15 @@ SV* my_pkt_dup(SV* sv_pkt, SV* sv_to, SV* sv_from){
 
   pkt_t new_pkt;
 
-  new_pkt =  pkt_dup( ((pkt_t) SvIV(SvRV(sv_pkt))),
+  if ((strlen(SvPV(sv_to, SvCUR(sv_to)))==0)&&(strlen(SvPV(sv_to, SvCUR(sv_to)))==0)) {
+      new_pkt =  pkt_dup( ((pkt_t) SvIV(SvRV(sv_pkt))),  
+                      NULL ,
+                      NULL );
+  } else {
+     new_pkt =  pkt_dup( ((pkt_t) SvIV(SvRV(sv_pkt))),
                       SvPV(sv_to, SvCUR(sv_to)),
                       SvPV(sv_from, SvCUR(sv_from)) );
+  }
   if (new_pkt == NULL){
     return newSVsv(&PL_sv_undef);
   } else {
