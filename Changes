@@ -21,3 +21,7 @@ Thu Jul  7 09:35:38 BST 2005
 Wed Jul 27 08:39:21 BST 2005
 0.07 - applied patches supplied by Christopher Zorn for problem wih dup() in pkt
        where it doesnt handle blank from and tos
+
+Tue Dec 13 07:06:39 GMT 2005
+0.08 - add two new methods for adding to CDATA of a given element - append_cdata_head(),
+       and append_cdata_tail() on Jabber::NAD.

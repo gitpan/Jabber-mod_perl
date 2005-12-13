@@ -18,8 +18,8 @@ $jabberdir = abs_path($jabberdir) || die "directory $jabberdir does not exist - 
 warn "\njabberd2 directory is: $jabberdir ...\n";
 
 #my $confdefaults = "--with-jabberd-parts=\"c2s resolver router sm jadperl\" --enable-debug --prefix=/home/jabber/jabberd";
-my $confdefaults = "--with-jabberd-parts=\"c2s resolver router sm\" --enable-debug --prefix=/home/jabber/jabberd --enable-db";
-print "\nPlease enter the directory of your jabberd2 source code: [$confdefaults] ";
+my $confdefaults = "--with-jabberd-parts=\"s2s c2s resolver router sm\" --enable-debug --prefix=/home/jabber/jabberd --enable-db --disable-idn --disable-mysql";
+print "\nPlease enter the parameters to be passed to configure: [$confdefaults] ";
 my $conf = <>;
 chomp $conf;
 $conf ||= $confdefaults;

@@ -8,6 +8,7 @@ reload/Reload.pm
 reload/Makefile.PL
 reload/test.pl
 examples/MyEcho.pm
+examples/MyStamp.pm
 examples/Some/Handler1.pm
 patches/mod_perl.c
 patches/mod_perl.h

@@ -76,6 +76,18 @@ A method to append CDATA to a NAD.
 
  $n->append_cdata( $cdata, $len, $depth );
 
+=head2 append_cdata_head()
+
+A method to append CDATA to the cdata before the first child element.
+
+ $n->append_cdata_head( $elem, $cdata );
+
+=head2 append_cdata_tail()
+
+A method to append CDATA to the cdata after the child elements of THIS element.
+
+ $n->append_cdata_head( $elem, $cdata );
+
 =head2 add_namespace()
 
 A method to add a namespace to a NAD
