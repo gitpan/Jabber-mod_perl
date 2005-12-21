@@ -173,31 +173,31 @@ mod_ret_t mod_perl_onpacket(mod_instance_t mi, pkt_t pkt)
     {
       case chain_SESS_START:
         XPUSHs( sv_2mortal( newSVpv("SESS_START", 0) ) );
-	break;
+      	break;
       case chain_SESS_END:
         XPUSHs( sv_2mortal( newSVpv("SESS_END", 0) ) );
-	break;
+      	break;
       case chain_IN_SESS:
         XPUSHs( sv_2mortal( newSVpv("IN_SESS", 0) ) );
-	break;
+      	break;
       case chain_IN_ROUTER:
         XPUSHs( sv_2mortal( newSVpv("IN_ROUTER", 0) ) );
-	break;
+      	break;
       case chain_OUT_SESS:
         XPUSHs( sv_2mortal( newSVpv("OUT_SESS", 0) ) );
-	break;
+      	break;
       case chain_OUT_ROUTER:
         XPUSHs( sv_2mortal( newSVpv("OUT_ROUTER", 0) ) );
-	break;
+      	break;
       case chain_PKT_SM:
         XPUSHs( sv_2mortal( newSVpv("PKT_SM", 0) ) );
-	break;
+      	break;
       case chain_PKT_USER:
         XPUSHs( sv_2mortal( newSVpv("PKT_USER", 0) ) );
-	break;
+      	break;
       case chain_PKT_ROUTER:
         XPUSHs( sv_2mortal( newSVpv("PKT_ROUTER", 0) ) );
-	break;
+      	break;
     }
 
     // push the module instance args on
@@ -299,9 +299,7 @@ void mod_perl_destroy()
 static mod_ret_t _mod_perl_in_sess(mod_instance_t mi, sess_t sess, pkt_t pkt)
 {
     /* we want messages addressed to /mod_perl */
-    log_debug(ZONE, "mod_perl_in_sess ");
     log_debug(ZONE, "mod_perl_in_sess %d ", pkt->type);
-    //log_debug(ZONE, "INDEX NO. FOR MOD_PERL: index - %d init - %d - nindex - %d \n\n\n", mod->index, mod->init, mod->mm->nindex);
 
     /* only allow access to <message/> <presence/> and <iq/> packets */
     if (pkt->type & pkt_MESSAGE || pkt->type & pkt_PRESENCE || pkt->type & pkt_IQ)
@@ -323,16 +321,105 @@ static mod_ret_t _mod_perl_in_sess(mod_instance_t mi, sess_t sess, pkt_t pkt)
 
 /*----------------------------------------------------------------------------------*
 
+  sm mod_perl subroutine reference - registered for handling packets that arrive from 
+  active users XXX
+
+*-----------------------------------------------------------------------------------*/
+//  mod_ret_t           (*out_sess)(mod_instance_t mi, sess_t sess, pkt_t pkt); **< out-sess handler *
+static mod_ret_t _mod_perl_out_sess(mod_instance_t mi, sess_t sess, pkt_t pkt)
+{
+    /* we want messages addressed to /mod_perl */
+    log_debug(ZONE, "mod_perl_out_sess %d ", pkt->type);
+
+    /* only allow access to <message/> <presence/> and <iq/> packets */
+    if (pkt->type & pkt_MESSAGE || pkt->type & pkt_PRESENCE || pkt->type & pkt_IQ)
+    {
+	if (pkt->from != NULL){
+            log_debug(ZONE, "mod_perl_out_sess - PROCESSING request of %d from %s",
+	        	       	pkt->type, jid_full(pkt->from));
+        } else {
+            log_debug(ZONE, "mod_perl_out_sess - PROCESSING request of %d", pkt->type);
+        }
+        return mod_perl_onpacket(mi, pkt);
+    } else {
+        return mod_PASS;
+    }
+
+}
+
+
+
+/*----------------------------------------------------------------------------------*
+
+  sm mod_perl subroutine reference - registered for handling packets that arrive from 
+  active users
+
+*-----------------------------------------------------------------------------------*/
+//  mod_ret_t           (*in_router)(mod_instance_t mi, pkt_t pkt);             **< in-router handler *
+static mod_ret_t _mod_perl_in_router(mod_instance_t mi, pkt_t pkt)
+{
+    /* we want messages addressed to /mod_perl */
+    log_debug(ZONE, "mod_perl_in_router %d ", pkt->type);
+
+    /* only allow access to <message/> <presence/> and <iq/> packets */
+    if (pkt->type & pkt_MESSAGE || pkt->type & pkt_PRESENCE || pkt->type & pkt_IQ)
+    {
+	if (pkt->from != NULL){
+            log_debug(ZONE, "mod_perl_in_router - PROCESSING request of %d from %s",
+	        	       	pkt->type, jid_full(pkt->from));
+        } else {
+            log_debug(ZONE, "mod_perl_in_router - PROCESSING request of %d", pkt->type);
+        }
+        return mod_perl_onpacket(mi, pkt);
+    } else {
+        return mod_PASS;
+    }
+
+}
+
+
+
+/*----------------------------------------------------------------------------------*
+
+  sm mod_perl subroutine reference - registered for handling packets that arrive from 
+  active users XXX
+
+*-----------------------------------------------------------------------------------*/
+//  mod_ret_t           (*out_router)(mod_instance_t mi, pkt_t pkt);            **< out-router handler *
+static mod_ret_t _mod_perl_out_router(mod_instance_t mi, pkt_t pkt)
+{
+    /* we want messages addressed to /mod_perl */
+    log_debug(ZONE, "mod_perl_out_router %d ", pkt->type);
+
+    /* only allow access to <message/> <presence/> and <iq/> packets */
+    if (pkt->type & pkt_MESSAGE || pkt->type & pkt_PRESENCE || pkt->type & pkt_IQ)
+    {
+	if (pkt->from != NULL){
+            log_debug(ZONE, "mod_perl_out_router - PROCESSING request of %d from %s",
+	        	       	pkt->type, jid_full(pkt->from));
+        } else {
+            log_debug(ZONE, "mod_perl_out_router - PROCESSING request of %d", pkt->type);
+        }
+        return mod_perl_onpacket(mi, pkt);
+    } else {
+        return mod_PASS;
+    }
+
+}
+
+
+
+/*----------------------------------------------------------------------------------*
+
   sm mod_perl subroutine reference - registered for handling packets that are
   addressed directly to the host
 
 *-----------------------------------------------------------------------------------*/
+//  mod_ret_t           (*pkt_sm)(mod_instance_t mi, pkt_t pkt);                 **< pkt-sm handler *
 static mod_ret_t _mod_perl_pkt_sm(mod_instance_t mi, pkt_t pkt)
 {
     /* we want messages addressed to /mod_perl */
-    log_debug(ZONE, "mod_perl_pkt_sm ");
     log_debug(ZONE, "mod_perl_pkt_sm - saw a packet from %s - %d ", jid_full(pkt->from), pkt->type);
-    //log_debug(ZONE, "INDEX NO. FOR MOD_PERL: index - %d init - %d - nindex - %d \n\n\n", mod->index, mod->init, mod->mm->nindex);
 
     /* only allow access to <message/> <presence/> and <iq/> packets */
     if (pkt->type & pkt_MESSAGE || pkt->type & pkt_PRESENCE || pkt->type & pkt_IQ)
@@ -354,17 +441,43 @@ static mod_ret_t _mod_perl_pkt_sm(mod_instance_t mi, pkt_t pkt)
   to the user
 
 *-----------------------------------------------------------------------------------*/
+//  mod_ret_t           (*pkt_user)(mod_instance_t mi, user_t user, pkt_t pkt);  **< pkt-user handler *
 static mod_ret_t _mod_perl_pkt_user(mod_instance_t mi, user_t user, pkt_t pkt)
 {
     /* we want messages addressed to /mod_perl */
-    log_debug(ZONE, "mod_perl_pkt_user ");
     log_debug(ZONE, "mod_perl_pkt_user - saw a packet from %s - %d ", jid_full(pkt->from), pkt->type);
-    //log_debug(ZONE, "INDEX NO. FOR MOD_PERL: index - %d init - %d - nindex - %d \n\n\n", mod->index, mod->init, mod->mm->nindex);
 
     /* only allow access to <message/> <presence/> and <iq/> packets */
     if (pkt->type & pkt_MESSAGE || pkt->type & pkt_PRESENCE || pkt->type & pkt_IQ)
     {
         log_debug(ZONE, "mod_perl_pkt_user - PROCESSING request of %d from %s",
+		       	pkt->type, jid_full(pkt->from));
+        return mod_perl_onpacket(mi, pkt);
+    } else {
+        return mod_PASS;
+    }
+
+}
+
+
+
+/*----------------------------------------------------------------------------------*
+
+  sm mod_perl subroutine reference - registered for handling packets from the router
+  to the user
+
+*-----------------------------------------------------------------------------------*/
+//  mod_ret_t           (*pkt_router)(mod_instance_t mi, pkt_t pkt);             **< pkt-router handler *
+static mod_ret_t _mod_perl_pkt_router(mod_instance_t mi, pkt_t pkt)
+{
+    /* we want messages addressed to /mod_perl */
+    log_debug(ZONE, "mod_perl_pkt_router ");
+    log_debug(ZONE, "mod_perl_pkt_router - saw a packet from %s - %d ", jid_full(pkt->from), pkt->type);
+
+    /* only allow access to <message/> <presence/> and <iq/> packets */
+    if (pkt->type & pkt_MESSAGE || pkt->type & pkt_PRESENCE || pkt->type & pkt_IQ)
+    {
+        log_debug(ZONE, "mod_perl_pkt_router - PROCESSING request of %d from %s",
 		       	pkt->type, jid_full(pkt->from));
         return mod_perl_onpacket(mi, pkt);
     } else {
@@ -424,44 +537,66 @@ int mod_perl_init(mod_instance_t mi, char *arg)
     switch ( mi->chain )
     {
       case chain_SESS_START:
-	break;
+//        mod->sess_start = _mod_perl_sess_start;
+	      break;
       case chain_SESS_END:
-	break;
+//        mod->sess_end = _mod_perl_sess_end;
+	      break;
       case chain_IN_SESS:
         mod->in_sess = _mod_perl_in_sess;
-	break;
+	      break;
       case chain_IN_ROUTER:
-	break;
+        mod->in_router = _mod_perl_in_router;
+	      break;
       case chain_OUT_SESS:
-	break;
+        mod->out_sess = _mod_perl_out_sess;
+	      break;
       case chain_OUT_ROUTER:
-	break;
+        mod->out_router = _mod_perl_out_router;
+      	break;
       case chain_PKT_SM:
         mod->pkt_sm = _mod_perl_pkt_sm;
-	break;
+      	break;
       case chain_PKT_USER:
         mod->pkt_user = _mod_perl_pkt_user;
-	break;
+      	break;
       case chain_PKT_ROUTER:
-	break;
+        mod->pkt_router = _mod_perl_pkt_router;
+      	break;
+      case chain_USER_LOAD:
+//        mod->user_load = _mod_perl_user_load;
+      	break;
+      case chain_USER_CREATE:
+//        mod->user_create = _mod_perl_user_create;
+      	break;
+      case chain_USER_DELETE:
+//        mod->user_delete = _mod_perl_user_delete;
+      	break;
     }
 
 /*
-    int                 (*sess_start)(mod_instance_t mi, sess_t sess);
-    void                (*sess_end)(mod_instance_t mi, sess_t sess);
+  int                 (*sess_start)(mod_instance_t mi, sess_t sess);      **< sess-start handler *
+  void                (*sess_end)(mod_instance_t mi, sess_t sess);        **< sess-end handler *
 
-    mod_ret_t           (*in_sess)(mod_instance_t mi, sess_t sess, pkt_t pkt);
-    mod_ret_t           (*in_router)(mod_instance_t mi, pkt_t pkt);
+  mod_ret_t           (*in_sess)(mod_instance_t mi, sess_t sess, pkt_t pkt);  **< in-sess handler *
+  mod_ret_t           (*in_router)(mod_instance_t mi, pkt_t pkt);             **< in-router handler *
 
-    mod_ret_t           (*out_sess)(mod_instance_t mi, sess_t sess, pkt_t pkt);
-    mod_ret_t           (*out_router)(mod_instance_t mi, pkt_t pkt);
+  mod_ret_t           (*out_sess)(mod_instance_t mi, sess_t sess, pkt_t pkt); **< out-sess handler *
+  mod_ret_t           (*out_router)(mod_instance_t mi, pkt_t pkt);            **< out-router handler *
 
-    mod_ret_t           (*pkt_sm)(mod_instance_t mi, pkt_t pkt);
-    mod_ret_t           (*pkt_user)(mod_instance_t mi, user_t user, pkt_t pkt);
+  mod_ret_t           (*pkt_sm)(mod_instance_t mi, pkt_t pkt);                 **< pkt-sm handler *
+  mod_ret_t           (*pkt_user)(mod_instance_t mi, user_t user, pkt_t pkt);  **< pkt-user handler *
 
-    mod_ret_t           (*pkt_router)(mod_instance_t mi, pkt_t pkt);
-    void                (*free)(module_t mi);
+  mod_ret_t           (*pkt_router)(mod_instance_t mi, pkt_t pkt);             **< pkt-router handler *
+
+  int                 (*user_load)(mod_instance_t mi, user_t user);            **< user-load handler *
+
+  int                 (*user_create)(mod_instance_t mi, jid_t jid);            **< user-create handler *
+  void                (*user_delete)(mod_instance_t mi, jid_t jid);            **< user-delete handler *
+
+
 */
+
 
     mod_perl_initialise(mod_perl_config, mi);
 

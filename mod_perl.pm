@@ -1,6 +1,6 @@
 package Jabber::mod_perl;
 use vars qw($VERSION @ISA);
-$VERSION = '0.08';
+$VERSION = '0.10';
 
 use strict;
 use vars q/$DEBUG/;
@@ -40,6 +40,18 @@ way ia the sm.xml config file - for example:
     ...
    </modules>
  ...
+
+The list of Module chains that are currently supported are:
+    * sess-start
+    * sess-end
+    * in-sess
+    * out-sess
+    * in-router
+    * out-router
+    * pkt-sm
+    * pkt-user
+    * pkt-router
+ 
 
 next - other information that a module author wished to pass to a registered handler at
 initialisation could be placed inside sm.xml file, as the whole nad representing this

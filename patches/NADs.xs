@@ -81,6 +81,9 @@ SV* my_nad_copy(SV* sv_n){
 
 void my_nad_wrap_elem(SV* sv_n, SV* sv_startelem, SV* sv_ns, SV* sv_name){
 
+    if (SvIV(sv_startelem) < 0 )
+						return;
+
     nad_wrap_elem(((nad_t) SvIV(SvRV(sv_n))),
                   SvIV(sv_startelem),
                   SvIV(sv_ns),
@@ -90,6 +93,9 @@ void my_nad_wrap_elem(SV* sv_n, SV* sv_startelem, SV* sv_ns, SV* sv_name){
 
 
 SV* my_nad_insert_elem(SV* sv_n, SV* sv_startelem, SV* sv_ns, SV* sv_name, SV* sv_cdata){
+
+    if (SvIV(sv_startelem) < 0 )
+            return newSVsv(&PL_sv_undef);
 
     return newSViv( 
          nad_insert_elem( 
@@ -146,6 +152,9 @@ SV* my_nad_find_elem(SV* sv_n, SV* sv_startelem, SV* sv_ns, SV* sv_name, SV* sv_
 
     char *name = NULL;
 
+    if (SvIV(sv_startelem) < 0 )
+            return newSVsv(&PL_sv_undef);
+
     if (SvTRUE(sv_name))
         name = SvPV(sv_name, SvCUR(sv_name));
     //fprintf(stderr, "NAME: %s \n", name);
@@ -171,6 +180,9 @@ void my_nad_append_cdata(SV* sv_n, SV* sv_cdata, SV* sv_len, SV* sv_depth){
 
 void my_nad_append_cdata_head(SV* sv_n, SV* sv_elem, SV* sv_cdata){
 
+    if (SvIV(sv_elem) < 0 )
+            return;
+
     nad_t nad = ((nad_t) SvIV(SvRV(sv_n)));
     int elem = SvIV(sv_elem);
     int len = SvCUR(sv_cdata);
@@ -184,7 +196,7 @@ void my_nad_append_cdata_head(SV* sv_n, SV* sv_elem, SV* sv_cdata){
 		int soset = nad->elems[elem].icdata + nad->elems[elem].lcdata;
 		int copy_len = nad->ccur - (nad->elems[elem].icdata + nad->elems[elem].lcdata);
 		SV* sv_temp = newSVpv(nad->cdata+soset, copy_len);
-    memcpy(nad->cdata+toset, SvPV(sv_temp, copy_len), copy_len);
+    memcpy(nad->cdata+toset, SvPV(sv_temp, SvCUR(sv_temp)), copy_len);
 
 		// increment overall length
 		nad->ccur += len;
@@ -235,8 +247,87 @@ void my_nad_append_cdata_head(SV* sv_n, SV* sv_elem, SV* sv_cdata){
 
 }
 
+void my_nad_replace_cdata_head(SV* sv_n, SV* sv_elem, SV* sv_cdata){
+
+    if (SvIV(sv_elem) < 0 )
+            return;
+
+    nad_t nad = ((nad_t) SvIV(SvRV(sv_n)));
+    int elem = SvIV(sv_elem);
+    int len = SvCUR(sv_cdata);
+
+		// if len_diff < 0 then we have to reduce the overall length of cdata
+		//    if not - then increase cdata by len_diff
+    int len_diff = len  - nad->elems[elem].lcdata;
+
+
+		if (len_diff > 0) {
+/*        nad, current tot len + strlen to add, current block len */
+		  NAD_SAFE(nad->cdata, nad->ccur + len_diff, nad->clen);
+	  }
+
+		// move other data down
+		//   tgt, src, len
+    int toset = nad->elems[elem].icdata + nad->elems[elem].lcdata + len_diff;
+		int soset = nad->elems[elem].icdata + nad->elems[elem].lcdata;
+		int copy_len = nad->ccur - (nad->elems[elem].icdata + nad->elems[elem].lcdata);
+		SV* sv_temp = newSVpv(nad->cdata+soset, copy_len);
+    memcpy(nad->cdata+toset, SvPV(sv_temp, SvCUR(sv_temp)), copy_len);
+
+		// increment overall length
+		nad->ccur += len_diff;
+
+		// copy in new data
+    memcpy(nad->cdata+nad->elems[elem].icdata, SvPV(sv_cdata, SvCUR(sv_cdata)), len);
+
+		// adjust pointers for all others after this one
+		//    attrs, ns, elem
+
+		// attributes
+		int iattr, ins, ielem;
+	  for(iattr=0;iattr < nad->acur;iattr++)
+	  {
+						if (nad->attrs[iattr].iname > nad->elems[elem].icdata)
+							nad->attrs[iattr].iname += len_diff;
+						if (nad->attrs[iattr].ival >  nad->elems[elem].icdata)
+						  nad->attrs[iattr].ival += len_diff;
+		}
+		// namespaces
+	  for(ins=0;ins < nad->ncur;ins++)
+	  {
+						// namespaces
+						if (nad->nss[ins].iuri > nad->elems[elem].icdata)
+							nad->nss[ins].iuri += len_diff;
+						// namespace prefixes
+						if (nad->nss[ins].iprefix > nad->elems[elem].icdata)
+							nad->nss[ins].iprefix += len_diff;
+		}
+		// Elements
+	  for(ielem=0;ielem < nad->ecur;ielem++)
+	  {
+						if (nad->elems[ielem].iname > nad->elems[elem].icdata)
+							nad->elems[ielem].iname += len_diff;
+					  if (nad->elems[ielem].icdata > nad->elems[elem].icdata)
+						  nad->elems[ielem].icdata += len_diff;
+						if (nad->elems[ielem].itail > nad->elems[elem].icdata)
+							nad->elems[ielem].itail += len_diff;
+		}
+		
+		// adjust pointer + len for modified elem offender
+    nad->elems[elem].lcdata += len_diff;
+
+		// reprint the nad so that the xml serialisation is inline
+    char *xml;
+    int xlen;
+    nad_print(nad, 0, &xml, &xlen);
+
+}
+
 
 void my_nad_append_cdata_tail(SV* sv_n, SV* sv_elem, SV* sv_cdata){
+
+    if (SvIV(sv_elem) < 0 )
+            return;
 
     nad_t nad = ((nad_t) SvIV(SvRV(sv_n)));
     int elem = SvIV(sv_elem);
@@ -251,7 +342,7 @@ void my_nad_append_cdata_tail(SV* sv_n, SV* sv_elem, SV* sv_cdata){
 		int soset = nad->elems[elem].itail + nad->elems[elem].ltail;
 		int copy_len = nad->ccur - (nad->elems[elem].itail + nad->elems[elem].ltail);
 		SV* sv_temp = newSVpv(nad->cdata+soset, copy_len);
-    memcpy(nad->cdata+toset, SvPV(sv_temp, copy_len), copy_len);
+    memcpy(nad->cdata+toset, SvPV(sv_temp, SvCUR(sv_temp)), copy_len);
 
 		// increment overall length
 		nad->ccur += len;
@@ -303,9 +394,90 @@ void my_nad_append_cdata_tail(SV* sv_n, SV* sv_elem, SV* sv_cdata){
 }
 
 
+void my_nad_replace_cdata_tail(SV* sv_n, SV* sv_elem, SV* sv_cdata){
+
+    if (SvIV(sv_elem) < 0 )
+            return;
+
+    nad_t nad = ((nad_t) SvIV(SvRV(sv_n)));
+    int elem = SvIV(sv_elem);
+    int len = SvCUR(sv_cdata);
+
+		// if len_diff < 0 then we have to reduce the overall length of cdata
+		//    if not - then increase cdata by len_diff
+    int len_diff = len  - nad->elems[elem].lcdata;
+
+
+		if (len_diff > 0) {
+    /*        nad, current tot len + strlen to add, current block len */
+		  NAD_SAFE(nad->cdata, nad->ccur + len_diff, nad->clen);
+	  }
+
+
+		// move other data down
+		//   tgt, src, len
+    int toset = nad->elems[elem].itail + nad->elems[elem].ltail + len_diff;
+		int soset = nad->elems[elem].itail + nad->elems[elem].ltail;
+		int copy_len = nad->ccur - (nad->elems[elem].itail + nad->elems[elem].ltail);
+		SV* sv_temp = newSVpv(nad->cdata+soset, copy_len);
+    memcpy(nad->cdata+toset, SvPV(sv_temp, SvCUR(sv_temp)), copy_len);
+
+		// increment overall length
+		nad->ccur += len_diff;
+
+		// copy in new data
+    memcpy(nad->cdata+nad->elems[elem].itail, SvPV(sv_cdata, SvCUR(sv_cdata)), len);
+
+		// adjust pointers for all others after this one
+		//    attrs, ns, elem
+
+		// attributes
+		int iattr, ins, ielem;
+	  for(iattr=0;iattr < nad->acur;iattr++)
+	  {
+						if (nad->attrs[iattr].iname > nad->elems[elem].itail)
+							nad->attrs[iattr].iname += len_diff;
+						if (nad->attrs[iattr].ival > nad->elems[elem].itail)
+							nad->attrs[iattr].ival += len_diff;
+		}
+		// namespaces
+	  for(ins=0;ins < nad->ncur;ins++)
+	  {
+						// namespaces
+						if (nad->nss[ins].iuri > nad->elems[elem].itail)
+							nad->nss[ins].iuri += len_diff;
+						// namespace prefixes
+						if (nad->nss[ins].iprefix > nad->elems[elem].itail)
+							nad->nss[ins].iprefix += len_diff;
+		}
+		// Elements
+	  for(ielem=0;ielem < nad->ecur;ielem++)
+	  {
+						if (nad->elems[ielem].iname > nad->elems[elem].itail)
+							nad->elems[ielem].iname += len_diff;
+						if (nad->elems[ielem].icdata >  nad->elems[elem].itail)
+						  nad->elems[ielem].icdata += len_diff;
+						if (nad->elems[ielem].itail > nad->elems[elem].itail)
+							nad->elems[ielem].itail += len_diff;
+		}
+		
+		// adjust pointer + len for modified elem offender
+    nad->elems[elem].ltail += len_diff;
+
+		// reprint the nad so that the xml serialisation is inline
+    char *xml;
+    int xlen;
+    nad_print(nad, 0, &xml, &xlen);
+
+}
+
+
 SV* my_nad_find_attr(SV* sv_n, SV* sv_startelem, SV* sv_ns, SV* sv_name, SV* sv_val){
 
     char *val = NULL;
+
+    if (SvIV(sv_startelem) < 0 )
+            return newSVsv(&PL_sv_undef);
 
     if (SvTRUE(sv_val))
         val = SvPV(sv_val, SvCUR(sv_val));
@@ -324,6 +496,9 @@ SV* my_nad_get_attr(SV* sv_n, SV* sv_attr){
 
 
 void my_nad_set_attr(SV* sv_n, SV* sv_startelem, SV* sv_ns, SV* sv_name, SV* sv_val){
+
+    if (SvIV(sv_startelem) < 0 )
+            return;
 
     nad_set_attr(((nad_t) SvIV(SvRV(sv_n))),
                  SvIV(sv_startelem),
@@ -357,6 +532,9 @@ SV* my_nad_add_namespace(SV* sv_n, SV* sv_ns){
 
 
 SV* my_nad_find_namespace(SV* sv_n, SV* sv_elem, SV* sv_uri, SV* sv_prefix){
+
+    if (SvIV(sv_elem) < 0 )
+            return newSVsv(&PL_sv_undef);
 
     return newSViv( nad_find_namespace(((nad_t) SvIV(SvRV(sv_n))),
                        SvIV(sv_elem),
@@ -399,6 +577,9 @@ SV* my_nad_nad_attr_val(SV* sv_n, SV* sv_attr){
 
 SV* my_nad_nad_elem_name(SV* sv_n, SV* sv_elem){
 
+    if (SvIV(sv_elem) < 0 )
+            return newSVsv(&PL_sv_undef);
+
     return newSVpvn( 
                      NAD_ENAME( ((nad_t) SvIV(SvRV(sv_n))), SvIV(sv_elem) ),
                      NAD_ENAME_L( ((nad_t) SvIV(SvRV(sv_n))), SvIV(sv_elem) )
@@ -408,6 +589,9 @@ SV* my_nad_nad_elem_name(SV* sv_n, SV* sv_elem){
 
 
 SV* my_nad_nad_cdata(SV* sv_n, SV* sv_elem){
+
+    if (SvIV(sv_elem) < 0 )
+            return newSVsv(&PL_sv_undef);
 
     return newSVpvn( 
                      NAD_CDATA( ((nad_t) SvIV(SvRV(sv_n))), SvIV(sv_elem) ),
@@ -516,7 +700,19 @@ my_nad_append_cdata_head (sv_n, sv_elem, sv_cdata)
 	SV *	sv_cdata
 
 void
+my_nad_replace_cdata_head (sv_n, sv_elem, sv_cdata)
+	SV *	sv_n
+	SV *	sv_elem
+	SV *	sv_cdata
+
+void
 my_nad_append_cdata_tail (sv_n, sv_elem, sv_cdata)
+	SV *	sv_n
+	SV *	sv_elem
+	SV *	sv_cdata
+
+void
+my_nad_replace_cdata_tail (sv_n, sv_elem, sv_cdata)
 	SV *	sv_n
 	SV *	sv_elem
 	SV *	sv_cdata

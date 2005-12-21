@@ -88,6 +88,18 @@ A method to append CDATA to the cdata after the child elements of THIS element.
 
  $n->append_cdata_head( $elem, $cdata );
 
+=head2 replace_cdata_head()
+
+A method to replace the CDATA before the first child element of the nominated element.
+
+ $n->replace_cdata_head( $elem, $cdata );
+
+=head2 replace_cdata_tail()
+
+A method to replace the CDATA after the child elements of THIS element.
+
+ $n->replace_cdata_head( $elem, $cdata );
+
 =head2 add_namespace()
 
 A method to add a namespace to a NAD

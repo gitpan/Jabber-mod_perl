@@ -25,3 +25,19 @@ Wed Jul 27 08:39:21 BST 2005
 Tue Dec 13 07:06:39 GMT 2005
 0.08 - add two new methods for adding to CDATA of a given element - append_cdata_head(),
        and append_cdata_tail() on Jabber::NAD.
+
+Wed Dec 21 10:16:35 GMT 2005
+0.10 - Added nad_replace_cdata_head(), and nad_replace_cdata_tail().  These complement the nad_append_cdata* methods.
+     - added support for nearly all the module chain events - support list is now:
+    * sess-start
+    * sess-end
+    * in-sess
+    * out-sess
+    * in-router
+    * out-router
+    * pkt-sm
+    * pkt-user
+    * pkt-router
+  Refer to the sample modules in the examples subdirectory, and the sm.xml file for the config.
+
+

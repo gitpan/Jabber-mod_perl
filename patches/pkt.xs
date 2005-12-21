@@ -162,9 +162,11 @@ void my_pkt_sess(SV* sv_pkt, SV* sv_sess){
 
 /* extract the to address   */
 SV* my_pkt_to(SV* sv_pkt){
+   char* full_jid;
 
   if (((pkt_t) SvIV(SvRV(sv_pkt)))->to != NULL){
-      return newSVpv(jid_full(((pkt_t) SvIV(SvRV(sv_pkt)))->to), 0);
+      full_jid = (char *) jid_full(((pkt_t) SvIV(SvRV(sv_pkt)))->to);
+      return newSVpv(full_jid, 0);
   } else {
     return newSVsv(&PL_sv_undef);
   }
@@ -174,9 +176,11 @@ SV* my_pkt_to(SV* sv_pkt){
 
 /* extract the from address   */
 SV* my_pkt_from(SV* sv_pkt){
+   char* full_jid;
 
   if (((pkt_t) SvIV(SvRV(sv_pkt)))->from != NULL){
-      return newSVpv(jid_full(((pkt_t) SvIV(SvRV(sv_pkt)))->from), 0);
+      full_jid = (char *) jid_full(((pkt_t) SvIV(SvRV(sv_pkt)))->from);
+      return newSVpv(full_jid, 0);
   } else {
     return newSVsv(&PL_sv_undef);
   }
