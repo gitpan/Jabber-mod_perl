@@ -1,6 +1,6 @@
 package Jabber::mod_perl;
 use vars qw($VERSION @ISA);
-$VERSION = '0.10';
+$VERSION = '0.15';
 
 use strict;
 use vars q/$DEBUG/;

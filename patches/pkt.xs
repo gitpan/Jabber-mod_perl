@@ -113,15 +113,57 @@ void my_pkt_free(SV* sv_pkt){
 
 
 /* create a packet from scratch   */
-SV* my_pkt_create(SV* sv_sm, SV* sv_elem, SV* sv_type, SV* sv_to, SV* sv_from){
+SV* my_pkt_create(SV* sv_pkt, SV* sv_elem, SV* sv_type, SV* sv_to, SV* sv_from){
 
-  pkt_t new_pkt;
+  pkt_t new_pkt = NULL;
+  pkt_t pkt =  ((pkt_t) SvIV(SvRV(sv_pkt)));
 
-  new_pkt =  pkt_create( ((sm_t) SvIV(SvRV(sv_sm))),
-                         SvPV(sv_elem, SvCUR(sv_elem)),
-                         SvPV(sv_type, SvCUR(sv_type)),
-                         SvPV(sv_to, SvCUR(sv_to)),
-                         SvPV(sv_from, SvCUR(sv_from)) );
+	/* no element */
+	if (SvCUR(sv_elem) == 0)
+    return newSVsv(&PL_sv_undef);
+
+	/* no type no to no from */
+	if (SvCUR(sv_type) == 0 && SvCUR(sv_to) == 0 && SvCUR(sv_from) == 0)
+    return newSVsv(&PL_sv_undef);
+
+	/* type but no to but do have from */
+	if (SvCUR(sv_type) != 0 && SvCUR(sv_to) == 0 && SvCUR(sv_from) != 0)
+    return newSVsv(&PL_sv_undef);
+
+	/* no type no to but do have from */
+	if (SvCUR(sv_type) == 0 && SvCUR(sv_to) == 0 && SvCUR(sv_from) != 0)
+    return newSVsv(&PL_sv_undef);
+
+  /* just type */
+	if (SvCUR(sv_type) != 0 && SvCUR(sv_to) == 0 && SvCUR(sv_from) == 0){
+    new_pkt =  pkt_create( pkt->sm,
+                           SvPV(sv_elem, SvCUR(sv_elem)),
+                           SvPV(sv_type, SvCUR(sv_type)),
+                           NULL,
+                           NULL );
+	/* type + to */
+	} else if (SvCUR(sv_type) != 0 && SvCUR(sv_to) != 0 && SvCUR(sv_from) == 0) {
+    new_pkt =  pkt_create( pkt->sm,
+                           SvPV(sv_elem, SvCUR(sv_elem)),
+                           SvPV(sv_type, SvCUR(sv_type)),
+                           SvPV(sv_to, SvCUR(sv_to)),
+                           NULL );
+  /* to + from */
+	} else if (SvCUR(sv_type) == 0 && SvCUR(sv_to) != 0 && SvCUR(sv_from) != 0) {
+    new_pkt =  pkt_create( pkt->sm,
+                           SvPV(sv_elem, SvCUR(sv_elem)),
+                           NULL,
+                           SvPV(sv_to, SvCUR(sv_to)),
+                           SvPV(sv_from, SvCUR(sv_from)) );
+  /* should be type + to + from */
+	} else {
+    new_pkt =  pkt_create( pkt->sm,
+                           SvPV(sv_elem, SvCUR(sv_elem)),
+                           SvPV(sv_type, SvCUR(sv_type)),
+                           SvPV(sv_to, SvCUR(sv_to)),
+                           SvPV(sv_from, SvCUR(sv_from)) );
+  }
+
   if (new_pkt == NULL){
     return newSVsv(&PL_sv_undef);
   } else {
@@ -242,8 +284,8 @@ my_pkt_free (sv_pkt)
 	SV *	sv_pkt
 
 SV *
-my_pkt_create (sv_sm, sv_elem, sv_type, sv_to, sv_from)
-	SV *	sv_sm
+my_pkt_create (sv_pkt, sv_elem, sv_type, sv_to, sv_from)
+	SV *	sv_pkt
 	SV *	sv_elem
 	SV *	sv_type
 	SV *	sv_to

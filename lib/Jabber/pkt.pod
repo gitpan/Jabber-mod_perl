@@ -58,6 +58,17 @@ Duplicate the packet
 
  my $newpkt = $pkt->dup();
 
+=head2 create()
+
+Create a new packet in the context of the current session (session that
+the current packet is attached to).
+
+ my $newpkt = $pkt->create("<message|iq|presence>", $type, $to, $from);
+
+Once the packet skeleton has been created - access the nad ($newpkt->nad)
+and modify the XML fragment as necessary, before delivering the packet 
+with $newpkt->router().
+
 =head2 router()
 
 Send a packet on it's way

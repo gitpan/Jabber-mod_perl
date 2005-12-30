@@ -533,24 +533,67 @@ SV* my_nad_add_namespace(SV* sv_n, SV* sv_ns){
 
 SV* my_nad_find_namespace(SV* sv_n, SV* sv_elem, SV* sv_uri, SV* sv_prefix){
 
-    if (SvIV(sv_elem) < 0 )
+    nad_t nad = ((nad_t) SvIV(SvRV(sv_n)));
+    if ((SvIV(sv_elem) < 0) || (SvIV(sv_elem) >= nad->ecur ))
             return newSVsv(&PL_sv_undef);
 
-    return newSViv( nad_find_namespace(((nad_t) SvIV(SvRV(sv_n))),
-                       SvIV(sv_elem),
-                       SvPV(sv_uri, SvCUR(sv_uri)),
-                       SvPV(sv_prefix, SvCUR(sv_prefix)) )
-                    );
+		if (SvCUR(sv_prefix) == 0){
+	    return newSViv( nad_find_namespace(nad,
+  	                     SvIV(sv_elem),
+    	                   SvPV(sv_uri, SvCUR(sv_uri)),
+      	                 NULL )
+        	            );
+    } else {
+	    return newSViv( nad_find_namespace(nad,
+  	                     SvIV(sv_elem),
+    	                   SvPV(sv_uri, SvCUR(sv_uri)),
+      	                 SvPV(sv_prefix, SvCUR(sv_prefix)) )
+        	            );
+    }
 
 }
 
 
 SV* my_nad_find_scoped_namespace(SV* sv_n, SV* sv_uri, SV* sv_prefix){
 
-    return newSViv( nad_find_scoped_namespace(((nad_t) SvIV(SvRV(sv_n))),
-                       SvPV(sv_uri, SvCUR(sv_uri)),
-                       SvPV(sv_prefix, SvCUR(sv_prefix)) )
-                    );
+		if (SvCUR(sv_uri) < 1)
+      return newSVsv(&PL_sv_undef);
+
+		if (SvCUR(sv_prefix) == 0){
+    	return newSViv( nad_find_scoped_namespace(((nad_t) SvIV(SvRV(sv_n))),
+      	                 SvPV(sv_uri, SvCUR(sv_uri)),
+        	               NULL )
+          	          );
+    } else {
+    	return newSViv( nad_find_scoped_namespace(((nad_t) SvIV(SvRV(sv_n))),
+      	                 SvPV(sv_uri, SvCUR(sv_uri)),
+        	               SvPV(sv_prefix, SvCUR(sv_prefix)) )
+          	          );
+		}
+
+}
+
+
+AV* my_nad_list_namespaces(SV* sv_n){
+
+		// namespaces
+		int ins;
+    AV* array;
+	  AV* nss = newAV();
+    nad_t nad = ((nad_t) SvIV(SvRV(sv_n)));
+
+	  for(ins=0;ins < nad->ncur;ins++)
+	  {
+						// namespaces
+						av_push(nss, newRV_noinc( (SV*) ( array = newAV() ) ));
+	          av_push(array, newSVpv(NAD_NURI(nad, ins), NAD_NURI_L(nad, ins)));
+						if (nad->nss[ins].iprefix >= 0){
+	            av_push(array, newSVpv(NAD_NPREFIX(nad, ins), NAD_NPREFIX_L(nad, ins)));
+					  } else {
+	            av_push(array, newSVsv(&PL_sv_undef));
+						}
+		}
+    return nss;
 
 }
 
@@ -762,6 +805,10 @@ my_nad_find_scoped_namespace (sv_n, sv_uri, sv_prefix)
 	SV *	sv_n
 	SV *	sv_uri
 	SV *	sv_prefix
+
+AV *
+my_nad_list_namespaces (sv_n)
+	SV *	sv_n
 
 SV *
 my_nad_nad_attr_name (sv_n, sv_attr)
